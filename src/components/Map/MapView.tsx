@@ -10,8 +10,6 @@ import { MAPBOX_STYLES, DEFAULT_MAP_CONFIG } from '@/constants/map';
 import { getTrackColor } from '@/constants/colors';
 import { ROUTE_LAYER_BASE_PAINT, ROUTE_LAYER_LAYOUT } from '@/constants/layers';
 import MapOverlay from '@/components/Map/MapOverlay';
-import lineSlice from '@turf/line-slice';
-import length from '@turf/length';
 
 export default function MapView() {
   const [currentStyle, setCurrentStyle] = useState<string>(MAPBOX_STYLES.OUTDOOR);
@@ -19,7 +17,6 @@ export default function MapView() {
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [geoData, setGeoData] = useState<any>(null);
   
-  // État pour le point qui suit la souris (Altitude)
   const [hoverInfo, setHoverInfo] = useState<{
     lng: number;
     lat: number;
@@ -39,14 +36,12 @@ export default function MapView() {
   const tracksWithColors = useMemo(() => {
     if (!geoData?.features) return [];
 
-    // 1. Tri numérique (7, 11, 15, 20...)
     const sortedFeatures = [...geoData.features].sort((a, b) => {
       const typeComp = a.properties.type.localeCompare(b.properties.type);
       if (typeComp !== 0) return typeComp;
       return a.properties.name.localeCompare(b.properties.name, undefined, { numeric: true });
     });
 
-    // 2. Attribution des couleurs par type
     const typeIndices: Record<string, number> = {};
     return sortedFeatures.map((f: any) => {
       const type = f.properties.type.toLowerCase();
@@ -62,7 +57,6 @@ export default function MapView() {
     });
   }, [geoData, isSatelliteMode]);
 
-  // Générateur d'expression pour le Layer
   const getColorExpression = () => {
     if (tracksWithColors.length === 0) return '#3b82f6';
     const expression: any[] = ['match', ['get', 'id']];
@@ -73,7 +67,7 @@ export default function MapView() {
     return expression as any;
   };
 
-  // --- LOGIQUE DU CURSEUR (TURF) ---
+  // --- LOGIQUE DU CURSEUR (LÉGÈRE & OPTIMISÉE) ---
   const handleMouseMove = useCallback((event: any) => {
     const feature = event.features && event.features[0];
     
@@ -82,21 +76,16 @@ export default function MapView() {
       const activeRoute = geoData.features.find((f: any) => f.properties.id === feature.properties.id);
 
       if (activeRoute) {
-        // 1. On "aimante" toujours la souris sur la ligne
         const snapped = nearestPointOnLine(activeRoute, mousePt);
-        
-        // 2. On récupère l'index du point le plus proche sur le tracé original
         const closestIndex = snapped.properties?.index || 0;
-        
-        // 3. On extrait les données pré-calculées [lng, lat, alt, dist]
         const pointData = activeRoute.geometry.coordinates[closestIndex];
 
         if (pointData) {
           setHoverInfo({
             lng: snapped.geometry.coordinates[0],
             lat: snapped.geometry.coordinates[1],
-            alt: Math.round(pointData[2] || 0),   // Index 2 : Altitude
-            dist: pointData[3]?.toFixed(1) || "0.0", // Index 3 : Distance pré-calculée !
+            alt: Math.round(pointData[2] || 0),
+            dist: pointData[3]?.toFixed(1) || "0.0",
             x: event.point.x,
             y: event.point.y
           });
@@ -129,7 +118,6 @@ export default function MapView() {
         onMove={evt => setViewState(evt.viewState)}
         onMouseMove={handleMouseMove}
         onClick={() => setSelectedRouteId(null)}
-        // On écoute maintenant sur le calque invisible (plus large)
         interactiveLayerIds={['route-hover-helper']} 
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
         mapStyle={currentStyle}
@@ -139,22 +127,26 @@ export default function MapView() {
 
         {geoData && (
           <Source id="my-data" type="geojson" data={geoData}>
-            {/* CALQUE FANTÔME (La Hitbox) */}
+            {/* HITBOX INVISIBLE POUR FACILITER LE SURVOL */}
             <Layer 
               id="route-hover-helper"
               type="line"
               paint={{
-                'line-width': 12,       // Voici ta hitbox : 30px de large !
-                'line-color': 'rgba(0, 0, 0, 0)', // Totalement invisible
+                'line-width': 20,
+                'line-color': 'rgba(0, 0, 0, 0)',
               }}
               layout={ROUTE_LAYER_LAYOUT}
             />
 
-            {/* CALQUE VISIBLE (Tes sentiers) */}
+            {/* TRACÉS VISIBLES (L'offset est déjà dans les coordonnées) */}
             <Layer 
               id="route-layer"
               type="line"
-              layout={ROUTE_LAYER_LAYOUT}
+              layout={{
+                ...ROUTE_LAYER_LAYOUT,
+                'line-join': 'round',
+                'line-cap': 'round'
+              }}
               paint={{
                 ...ROUTE_LAYER_BASE_PAINT,
                 'line-width': selectedRouteId ? 7 : 4,
@@ -166,7 +158,7 @@ export default function MapView() {
           </Source>
         )}
 
-        {/* REAJOUTE CE BLOC ICI : Le point blanc aimanté */}
+        {/* POINT BLANC AIMANTÉ */}
         {hoverInfo && (
           <Source id="hover-pt" type="geojson" data={{
             type: 'Feature',
@@ -189,13 +181,13 @@ export default function MapView() {
           </Source>
         )}
 
-        {/* Le petit point blanc aimanté */}
+        {/* BULLE D'INFORMATIONS */}
         {hoverInfo && (
           <div 
-            className="absolute pointer-events-none bg-slate-900/95 text-white px-3 py-2 rounded-lg shadow-2xl text-[11px] font-medium flex flex-col gap-1 border border-white/10 backdrop-blur-sm"
+            className="absolute pointer-events-none bg-slate-900/95 text-white px-3 py-2 rounded-lg shadow-2xl text-[11px] font-medium flex flex-col gap-1 border border-white/10 backdrop-blur-sm z-50"
             style={{ 
-              left: hoverInfo.x + 25, // Augmenté à 25
-              top: hoverInfo.y - 40   // Remonté à -40 pour ne pas gêner la lecture du tracé
+              left: hoverInfo.x + 25,
+              top: hoverInfo.y - 40
             }}
           >
             <div className="flex items-center justify-between gap-4">
