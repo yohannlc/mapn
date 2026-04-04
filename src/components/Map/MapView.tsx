@@ -10,6 +10,7 @@ import { MAPBOX_STYLES, DEFAULT_MAP_CONFIG } from '@/constants/map';
 import { getTrackColor } from '@/constants/colors';
 import { ROUTE_LAYER_BASE_PAINT, ROUTE_LAYER_LAYOUT } from '@/constants/layers';
 import MapOverlay from '@/components/Map/MapOverlay';
+import { TRACK_CONFIG, LAYER_FILTERS } from '@/constants/map';
 
 export default function MapView() {
   const [currentStyle, setCurrentStyle] = useState<string>(MAPBOX_STYLES.OUTDOOR);
@@ -136,7 +137,9 @@ export default function MapView() {
               id="route-hover-helper"
               type="line"
               paint={{
-                'line-width': 20,
+                'line-width': selectedRouteId 
+                  ? TRACK_CONFIG.HITBOX_SELECTED 
+                  : TRACK_CONFIG.HITBOX_DEFAULT,
                 'line-color': 'rgba(0, 0, 0, 0)',
               }}
               layout={ROUTE_LAYER_LAYOUT}
@@ -154,11 +157,15 @@ export default function MapView() {
               }}
               paint={{
                 ...ROUTE_LAYER_BASE_PAINT,
-                'line-width': selectedRouteId ? 7 : 4,
+                'line-width': selectedRouteId 
+                  ? TRACK_CONFIG.WIDTH_SELECTED 
+                  : TRACK_CONFIG.WIDTH_DEFAULT,
                 'line-color': getColorExpression(),
-                'line-opacity': selectedRouteId ? 1 : 0.8
+                'line-opacity': selectedRouteId 
+                  ? TRACK_CONFIG.OPACITY_SELECTED 
+                  : TRACK_CONFIG.OPACITY_DEFAULT
               }}
-              filter={selectedRouteId ? ['==', ['get', 'id'], selectedRouteId] : ['all']}
+              filter={LAYER_FILTERS.ID_MATCH(selectedRouteId)}
             />
           </Source>
         )}
@@ -177,7 +184,7 @@ export default function MapView() {
               id="hover-circle" 
               type="circle" 
               paint={{
-                'circle-radius': 6,
+                'circle-radius': TRACK_CONFIG.HOVER_DOT_RADIUS,
                 'circle-color': '#ffffff',
                 'circle-stroke-width': 2,
                 'circle-stroke-color': '#000000',

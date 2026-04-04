@@ -9,7 +9,7 @@ const INPUT_DIR = './gpx';
 const OUTPUT_FILE = './public/data/tracks.json';
 
 // Espacement entre deux traces co-localisées (mètres)
-const OFFSET_STEP = 5;
+const OFFSET_STEP = 3;
 
 // Distance max (mètres) en dessous de laquelle deux points sont considérés
 // sur le même segment → seuil de co-localisation
