@@ -8,33 +8,53 @@ interface ControlsProps {
 }
 
 export default function Controls({ currentStyle, onStyleChange }: ControlsProps) {
-  
-  const isSatellite = currentStyle === MAPBOX_STYLES.SATELLITE;
-
-  const toggleStyle = () => {
-    onStyleChange(isSatellite ? MAPBOX_STYLES.OUTDOOR : MAPBOX_STYLES.SATELLITE);
-  };
+  const options = [
+    {
+      id: MAPBOX_STYLES.OUTDOOR,
+      label: 'Plan',
+      preview: 'bg-emerald-100 border-emerald-200' 
+    },
+    {
+      id: MAPBOX_STYLES.SATELLITE,
+      label: 'Sat.',
+      preview: 'bg-slate-800 border-slate-700'
+    }
+  ];
 
   return (
-    <div className="flex w-64 flex-col gap-4 rounded-2xl bg-white/80 p-4 shadow-xl backdrop-blur-md border border-white/20">
-      <div className="flex items-center justify-between bg-gray-100/50 p-2 rounded-xl">
-        <span className="text-xs font-medium text-gray-700">
-          {isSatellite ? 'Vue Satellite' : 'Vue Outdoor'}
-        </span>
+    <div className="inline-flex gap-2 bg-white/80 backdrop-blur-md border border-white/20 p-1.5 rounded-2xl shadow-sm pointer-events-auto">
+      {options.map((option) => {
+        const isActive = currentStyle === option.id;
         
-        <button
-          onClick={toggleStyle}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 focus:outline-none ${
-            isSatellite ? 'bg-emerald-500' : 'bg-slate-400'
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-300 ${
-              isSatellite ? 'translate-x-6' : 'translate-x-1'
+        return (
+          <button
+            key={option.id}
+            onClick={() => onStyleChange(option.id)}
+            className={`group relative h-10 w-10 rounded-xl transition-all duration-300 border overflow-hidden ${
+              isActive 
+                ? 'border-blue-500 shadow-sm' 
+                : 'border-transparent hover:border-slate-200'
             }`}
-          />
-        </button>
-      </div>
+          >
+            {/* Aperçu visuel */}
+            <div className={`absolute inset-0 transition-opacity duration-300 ${option.preview} ${isActive ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}`} />
+            
+            {/* Label discret */}
+            <div className="absolute inset-x-0 bottom-0 bg-black/30 py-0.5">
+              <span className={`block text-[7px] text-center text-white/90 ${
+                isActive ? 'font-medium' : 'font-normal'
+              }`}>
+                {option.label}
+              </span>
+            </div>
+
+            {/* Indicateur minimaliste (petit point blanc) */}
+            {isActive && (
+              <div className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-white shadow-sm" />
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

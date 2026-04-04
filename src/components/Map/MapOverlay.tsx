@@ -20,7 +20,7 @@ export default function MapOverlay({
   onSelect
 }: OverlayProps) {
   return (
-    <div className="absolute left-4 top-4 z-10 flex flex-col gap-3 w-72 pointer-events-none">
+    <div className="absolute left-6 top-6 z-10 flex flex-col gap-4 items-start pointer-events-none">
       
       {/* Bloc de la légende (Circuits) en premier */}
       <div className="pointer-events-auto">
