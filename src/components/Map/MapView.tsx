@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-// Ajout de NavigationControl ici
 import Map, { Source, Layer, NavigationControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { MAPBOX_STYLES, DEFAULT_MAP_CONFIG } from '@/constants/map';
-import { getTrackColor } from '@/utils/colors';
+import { getTrackColor } from '@/constants/colors';
 import MapOverlay from '@/components/Map/MapOverlay';
 
 export default function MapView() {
@@ -25,12 +24,40 @@ export default function MapView() {
   });
 
   const tracksWithColors = useMemo(() => {
-    return geoData?.features?.map((f: any, index: number) => ({
-      id: f.properties.id,
-      name: f.properties.name,
-      type: f.properties.type,
-      color: getTrackColor(f.properties.type, index, isSatelliteMode)
-    })) || [];
+    if (!geoData?.features) return [];
+
+    // 1. On crée une copie pour ne pas muter les données originales
+    const sortedFeatures = [...geoData.features].sort((a, b) => {
+      // Tri par Type d'abord
+      const typeCompare = a.properties.type.localeCompare(b.properties.type);
+      if (typeCompare !== 0) return typeCompare;
+
+      // Tri par Nom ensuite (Tri numérique : 7, 11, 15, 20...)
+      return a.properties.name.localeCompare(b.properties.name, undefined, {
+        numeric: true,
+        sensitivity: 'base'
+      });
+    });
+
+    // 2. On attribue les couleurs APRES le tri pour que l'index soit cohérent
+    const typeIndices: Record<string, number> = {};
+
+    return sortedFeatures.map((f: any) => {
+      const type = f.properties.type.toLowerCase();
+      
+      if (typeIndices[type] === undefined) {
+        typeIndices[type] = 0;
+      } else {
+        typeIndices[type]++;
+      }
+
+      return {
+        id: f.properties.id,
+        name: f.properties.name,
+        type: type,
+        color: getTrackColor(type, typeIndices[type], isSatelliteMode)
+      };
+    });
   }, [geoData, isSatelliteMode]);
 
   const getColorExpression = () => {
@@ -70,7 +97,7 @@ export default function MapView() {
         style={{ width: '100%', height: '100%' }}
         reuseMaps
       >
-        {/* BOUTONS ZOOM ET BOUSSOLE */}
+
         <NavigationControl 
           position="top-right" 
           visualizePitch={true} 
@@ -84,14 +111,12 @@ export default function MapView() {
               id="route-layer"
               type="line"
               paint={{
-                // Si un circuit est sélectionné, on peut épaissir un peu la ligne
                 'line-width': selectedRouteId ? 6 : 4,
-                'line-color': getColorExpression(),
-                // On baisse l'opacité globale pour que ce soit moins agressif
+                // On appelle bien la fonction définie dans MapView qui utilise l'ID
+                'line-color': getColorExpression(), 
                 'line-opacity': 0.8
               }}
               layout={{ 'line-join': 'round', 'line-cap': 'round' }}
-              // Ton filtre actuel est parfait : il cache les autres si un est sélectionné
               filter={selectedRouteId ? ['==', ['get', 'id'], selectedRouteId] : ['all']}
             />
           </Source>
