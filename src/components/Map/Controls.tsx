@@ -2,12 +2,12 @@
 
 import { MAPBOX_STYLES } from '@/constants/map';
 
-interface MapControlsProps {
+interface ControlsProps {
   currentStyle: string;
   onStyleChange: (style: string) => void;
 }
 
-export default function MapControls({ currentStyle, onStyleChange }: MapControlsProps) {
+export default function Controls({ currentStyle, onStyleChange }: ControlsProps) {
   
   const isSatellite = currentStyle === MAPBOX_STYLES.SATELLITE;
 
@@ -16,12 +16,7 @@ export default function MapControls({ currentStyle, onStyleChange }: MapControls
   };
 
   return (
-    <div className="absolute left-4 top-4 z-10 flex w-64 flex-col gap-4 rounded-2xl bg-white/80 p-4 shadow-xl backdrop-blur-md border border-white/20">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-bold text-gray-900">Configuration</h3>
-        <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Fond de carte</p>
-      </div>
-
+    <div className="flex w-64 flex-col gap-4 rounded-2xl bg-white/80 p-4 shadow-xl backdrop-blur-md border border-white/20">
       <div className="flex items-center justify-between bg-gray-100/50 p-2 rounded-xl">
         <span className="text-xs font-medium text-gray-700">
           {isSatellite ? 'Vue Satellite' : 'Vue Outdoor'}
@@ -39,11 +34,6 @@ export default function MapControls({ currentStyle, onStyleChange }: MapControls
             }`}
           />
         </button>
-      </div>
-
-      {/* Emplacement futur pour d'autres réglages (on va ajouter beaucoup de choses ici) */}
-      <div className="pt-2 border-t border-gray-200">
-        <p className="text-[10px] text-gray-400 italic italic">Plus d'options à venir...</p>
       </div>
     </div>
   );

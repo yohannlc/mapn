@@ -14,7 +14,7 @@ interface LegendProps {
 
 export default function Legend({ tracks, selectedId, onSelect }: LegendProps) {
   return (
-    <div className="absolute left-4 top-40 z-10 flex w-64 flex-col gap-2 rounded-2xl bg-white/80 p-4 shadow-xl backdrop-blur-md border border-white/20">
+    <div className="flex w-64 flex-col gap-2 rounded-2xl bg-white/80 p-4 shadow-xl backdrop-blur-md border border-white/20">
       <h3 className="text-sm font-bold text-gray-900">Circuits</h3>
       <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
         {tracks.map((track) => (
@@ -33,9 +33,6 @@ export default function Legend({ tracks, selectedId, onSelect }: LegendProps) {
           </button>
         ))}
       </div>
-      <p className="text-[9px] text-gray-400 mt-1 italic italic">
-        Clique sur la carte pour tout afficher
-      </p>
     </div>
   );
 }
