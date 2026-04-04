@@ -69,7 +69,11 @@ export default function MapView() {
 
   // --- LOGIQUE DU CURSEUR (LÉGÈRE & OPTIMISÉE) ---
   const handleMouseMove = useCallback((event: any) => {
-    const feature = event.features && event.features[0];
+    let feature = event.features && event.features[0];
+
+    if (selectedRouteId && feature && feature.properties.id !== selectedRouteId) {
+      feature = null;
+    }
     
     if (feature && geoData) {
       const mousePt = point([event.lngLat.lng, event.lngLat.lat]);
@@ -94,7 +98,7 @@ export default function MapView() {
     } else {
       setHoverInfo(null);
     }
-  }, [geoData]);
+  }, [geoData, selectedRouteId]);
 
   useEffect(() => {
     fetch('/data/tracks.json')
@@ -136,6 +140,7 @@ export default function MapView() {
                 'line-color': 'rgba(0, 0, 0, 0)',
               }}
               layout={ROUTE_LAYER_LAYOUT}
+              filter={selectedRouteId ? ['==', ['get', 'id'], selectedRouteId] : ['all']}
             />
 
             {/* TRACÉS VISIBLES (L'offset est déjà dans les coordonnées) */}
