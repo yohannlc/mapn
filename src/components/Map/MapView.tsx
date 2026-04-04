@@ -82,27 +82,25 @@ export default function MapView() {
       const activeRoute = geoData.features.find((f: any) => f.properties.id === feature.properties.id);
 
       if (activeRoute) {
+        // 1. On "aimante" toujours la souris sur la ligne
         const snapped = nearestPointOnLine(activeRoute, mousePt);
         
-        // --- CALCUL DE LA DISTANCE PARCOURUE ---
-        const startPoint = point(activeRoute.geometry.coordinates[0]);
-        // On découpe la ligne du départ jusqu'au point "aimanté"
-        const slicedLine = lineSlice(startPoint, snapped, activeRoute);
-        // On calcule la longueur de ce segment en kilomètres
-        const distanceDone = length(slicedLine, { units: 'kilometers' });
-        // ---------------------------------------
-
+        // 2. On récupère l'index du point le plus proche sur le tracé original
         const closestIndex = snapped.properties?.index || 0;
-        const originalCoords = activeRoute.geometry.coordinates[closestIndex];
+        
+        // 3. On extrait les données pré-calculées [lng, lat, alt, dist]
+        const pointData = activeRoute.geometry.coordinates[closestIndex];
 
-        setHoverInfo({
-          lng: snapped.geometry.coordinates[0],
-          lat: snapped.geometry.coordinates[1],
-          alt: Math.round(originalCoords ? originalCoords[2] : 0),
-          dist: distanceDone.toFixed(1), // On garde un chiffre après la virgule
-          x: event.point.x,
-          y: event.point.y
-        });
+        if (pointData) {
+          setHoverInfo({
+            lng: snapped.geometry.coordinates[0],
+            lat: snapped.geometry.coordinates[1],
+            alt: Math.round(pointData[2] || 0),   // Index 2 : Altitude
+            dist: pointData[3]?.toFixed(1) || "0.0", // Index 3 : Distance pré-calculée !
+            x: event.point.x,
+            y: event.point.y
+          });
+        }
       }
     } else {
       setHoverInfo(null);
