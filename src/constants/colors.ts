@@ -19,9 +19,9 @@ export const PREDEFINED_COLORS: Record<string, { darker: string[]; lighter: stri
   },
   marche: {
     darker: [
-      '#3a2cbd', // circuitMarche0 (Bleu Indigo)
-      '#ae45ff', // circuitMarche1 (Violet vif)
-      '#ec794b', // circuitMarche2 (Orange corail)
+      '#3a2cbd',
+      '#ae45ff',
+      '#ec794b',
     ],
     lighter: [
       '#3a2cbd', 
