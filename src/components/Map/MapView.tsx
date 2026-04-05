@@ -28,8 +28,9 @@ export default function MapView() {
   const [hoverInfo, setHoverInfo] = useState<{
     lng: number;
     lat: number;
-    alt: number;
     dist: string;
+    alt: number;
+    color: string;
     x: number;
     y: number;
   } | null>(null);
@@ -102,12 +103,16 @@ export default function MapView() {
         const closestIndex = snapped.properties?.index || 0;
         const pointData = activeRoute.geometry.coordinates[closestIndex];
 
+      const trackMeta = tracksWithColors.find(t => t.id === feature.properties.id);
+      const trackColor = trackMeta?.color || '#ffffff';
+
         if (pointData) {
           setHoverInfo({
             lng: snapped.geometry.coordinates[0],
             lat: snapped.geometry.coordinates[1],
-            alt: Math.round(pointData[2] || 0),
             dist: pointData[3]?.toFixed(1) || "0.0",
+            alt: Math.round(pointData[2] || 0),
+            color: trackColor,
             x: event.point.x,
             y: event.point.y
           });
@@ -116,7 +121,7 @@ export default function MapView() {
     } else {
       setHoverInfo(null);
     }
-  }, [geoData, selectedRouteId]);
+  }, [geoData, selectedRouteId, tracksWithColors]);
 
   useEffect(() => {
     fetch('/data/tracks.json')
@@ -169,15 +174,8 @@ export default function MapView() {
             <Layer 
               id="route-layer"
               type="line"
-              layout={{
-                ...ROUTE_LAYER_LAYOUT,
-                // Note : join et cap sont déjà dans ROUTE_LAYER_LAYOUT normalement, 
-                // mais on les laisse ici par sécurité si tu préfères
-                'line-join': 'round',
-                'line-cap': 'round'
-              }}
+              layout={ROUTE_LAYER_LAYOUT}
               paint={{
-                // On a supprimé ...ROUTE_LAYER_BASE_PAINT ici
                 'line-width': selectedRouteId 
                   ? TRACK_CONFIG.WIDTH_SELECTED 
                   : TRACK_CONFIG.WIDTH_DEFAULT,
@@ -188,7 +186,6 @@ export default function MapView() {
                   ? TRACK_CONFIG.OPACITY_SELECTED 
                   : TRACK_CONFIG.OPACITY_DEFAULT,
                   
-                // Optionnel : tu peux ajouter un lissage visuel ici si besoin
                 'line-blur': 0.5 
               }}
               filter={getCombinedFilter()}
@@ -211,7 +208,7 @@ export default function MapView() {
               type="circle" 
               paint={{
                 'circle-radius': TRACK_CONFIG.HOVER_DOT_RADIUS,
-                'circle-color': '#ffffff',
+                'circle-color': hoverInfo.color,
                 'circle-stroke-width': 2,
                 'circle-stroke-color': '#000000',
               }} 
