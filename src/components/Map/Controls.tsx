@@ -41,14 +41,16 @@ export default function Controls({ currentStyle, onStyleChange, visibleTypes, on
               key={type}
               onClick={() => onToggleType(type)}
               className={`group relative h-10 w-10 rounded-xl transition-all border flex flex-col items-center justify-center ${
-                isVisible ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-100/50 border-transparent grayscale opacity-50'
+                isVisible 
+                  ? 'bg-white border-slate-200 shadow-sm' 
+                  : 'bg-slate-100/50 border-transparent grayscale opacity-50'
               }`}
             >
               <span className="text-sm">{config.icon}</span>
               <span className={`text-[7px] uppercase font-bold ${isVisible ? 'text-blue-600' : 'text-slate-400'}`}>
                 {config.label}
               </span>
-              {isVisible && <div className="absolute top-1 right-1 h-1 w-1 rounded-full bg-blue-500" />}
+              {/* Pastille bleue supprimée ici */}
             </button>
           );
         })}

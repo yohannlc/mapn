@@ -6,11 +6,11 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { point } from '@turf/helpers';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
 
-import { MAPBOX_STYLES, DEFAULT_MAP_CONFIG } from '@/constants/map';
-import { getTrackColor } from '@/constants/colors';
-import { ROUTE_LAYER_LAYOUT } from '@/constants/layers';
 import MapOverlay from '@/components/Map/MapOverlay';
-import { TRACK_CONFIG, LAYER_FILTERS } from '@/constants/map';
+import { getTrackColor } from '@/constants/colors';
+import { MAPBOX_STYLES, DEFAULT_MAP_CONFIG } from '@/constants/map';
+import { ROUTE_LAYER_LAYOUT } from '@/constants/layers';
+import { TRACK_CONFIG } from '@/constants/map';
 
 export default function MapView() {
   const [currentStyle, setCurrentStyle] = useState<string>(MAPBOX_STYLES.OUTDOOR);
@@ -69,6 +69,7 @@ export default function MapView() {
         id: f.properties.id,
         name: f.properties.name,
         type: type,
+        elevationGain: f.properties.elevationGain,
         color: getTrackColor(type, idx, isSatelliteMode)
       };
     });

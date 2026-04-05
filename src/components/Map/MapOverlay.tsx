@@ -31,7 +31,7 @@ export default function MapOverlay({
         <Legend 
           tracks={tracks} 
           selectedId={selectedId} 
-          onSelect={onSelect} 
+          onSelect={onSelect}
         />
       </div>
 

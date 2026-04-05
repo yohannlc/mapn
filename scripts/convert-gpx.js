@@ -9,7 +9,7 @@ const INPUT_DIR = './gpx';
 const OUTPUT_FILE = './public/data/tracks.json';
 
 // Espacement entre deux traces co-localisées (mètres)
-const OFFSET_STEP = 3;
+const OFFSET_STEP = 5;
 
 // Distance max (mètres) en dessous de laquelle deux points sont considérés
 // sur le même segment → seuil de co-localisation
@@ -350,6 +350,8 @@ types.forEach(type => {
 
       const simplifiedCoords = simplified.geometry.coordinates;
       let cumulativeDistance = 0;
+      let elevationGain = 0;
+      let prevAlt = null;
 
       const coordsWithMeta = simplifiedCoords.map((coord, i) => {
         if (i > 0) {
@@ -359,10 +361,14 @@ types.forEach(type => {
         const origRatio = i / Math.max(simplifiedCoords.length - 1, 1);
         const origIdx = Math.round(origRatio * (feature.geometry.coordinates.length - 1));
         const alt = feature.geometry.coordinates[origIdx]?.[2] || 0;
+
+        if (prevAlt !== null && alt > prevAlt) elevationGain += alt - prevAlt;
+        prevAlt = alt;
+
         return [coord[0], coord[1], alt, parseFloat(cumulativeDistance.toFixed(3))];
       });
 
-      allTracks.push({ rawName, cleanName, type, coordsWithMeta, origFeature: feature });
+      allTracks.push({ rawName, cleanName, type, coordsWithMeta, elevationGain: Math.round(elevationGain), origFeature: feature });
 
     } catch (err) {
       console.error(`❌ Erreur lecture ${file}:`, err.message);
@@ -387,13 +393,17 @@ const allFeatures = allTracks.map((track, ti) => {
   const offsetCoords = perpendicularOffsetVariable(coordsWithMeta, offsets);
 
   origFeature.geometry.coordinates = offsetCoords;
+  const totalDistance = parseFloat(coordsWithMeta[coordsWithMeta.length - 1][3].toFixed(3));
+
   origFeature.properties = {
     id: `${type.toLowerCase()}-${rawName.toLowerCase()}`,
     name: cleanName,
-    type: type.toLowerCase()
+    type: type.toLowerCase(),
+    elevationGain: track.elevationGain,
+    distance: totalDistance
   };
 
-  console.log(`✅ ${rawName} (${type}) — ${offsetCoords.length} pts — offsets: [${uniqueOffsets.join(', ')}] m`);
+  console.log(`✅ ${rawName} (${type}) — ${offsetCoords.length} pts — ${totalDistance} km — D+ ${track.elevationGain} m — offsets: [${uniqueOffsets.join(', ')}] m`);
   return origFeature;
 });
 
