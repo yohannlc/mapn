@@ -1,18 +1,17 @@
-export const ROUTE_LAYER_BASE_PAINT = {
-  'line-width': 4,
-  'line-opacity': 0.8,
+export type CircuitType = 'vtt' | 'marche';
+
+export interface CircuitConfig {
+  label: string;
+  icon: string;
+  colorDefault?: string; // Le "?" rend la couleur optionnelle pour éviter l'erreur TS
+}
+
+export const CIRCUIT_SETTINGS: Record<CircuitType, CircuitConfig> = {
+  vtt: { label: 'VTT', icon: '🚴' },
+  marche: { label: 'Marche', icon: '🥾' },
 };
 
 export const ROUTE_LAYER_LAYOUT = {
   'line-join': 'round' as const,
   'line-cap': 'round' as const,
-};
-
-export type CircuitType = 'vtt' | 'trail' | 'marche' | 'cyclo';
-
-export const CIRCUIT_LABELS: Record<CircuitType, string> = {
-  vtt: 'VTT',
-  trail: 'Trail',
-  marche: 'Marche',
-  cyclo: 'Cyclo',
 };

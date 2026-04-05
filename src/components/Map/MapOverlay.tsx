@@ -10,11 +10,15 @@ interface OverlayProps {
   selectedId: string | null;
   // Ajout du "| null" pour permettre de désélectionner un circuit
   onSelect: (id: string | null) => void;
+  visibleTypes: string[];
+  onToggleType: (type: string) => void;
 }
 
 export default function MapOverlay({
   currentStyle,
   onStyleChange,
+  visibleTypes, 
+  onToggleType,
   tracks,
   selectedId,
   onSelect
@@ -35,7 +39,9 @@ export default function MapOverlay({
       <div className="pointer-events-auto">
         <Controls 
           currentStyle={currentStyle} 
-          onStyleChange={onStyleChange} 
+          onStyleChange={onStyleChange}
+          visibleTypes={visibleTypes}
+          onToggleType={onToggleType}
         />
       </div>
 

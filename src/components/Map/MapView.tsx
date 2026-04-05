@@ -8,7 +8,7 @@ import nearestPointOnLine from '@turf/nearest-point-on-line';
 
 import { MAPBOX_STYLES, DEFAULT_MAP_CONFIG } from '@/constants/map';
 import { getTrackColor } from '@/constants/colors';
-import { ROUTE_LAYER_BASE_PAINT, ROUTE_LAYER_LAYOUT } from '@/constants/layers';
+import { ROUTE_LAYER_LAYOUT } from '@/constants/layers';
 import MapOverlay from '@/components/Map/MapOverlay';
 import { TRACK_CONFIG, LAYER_FILTERS } from '@/constants/map';
 
@@ -17,6 +17,13 @@ export default function MapView() {
   const isSatelliteMode = currentStyle === MAPBOX_STYLES.SATELLITE;
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [geoData, setGeoData] = useState<any>(null);
+  const [visibleTypes, setVisibleTypes] = useState<string[]>(['vtt', 'marche']);
+
+  const toggleType = (type: string) => {
+    setVisibleTypes(prev => 
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
   
   const [hoverInfo, setHoverInfo] = useState<{
     lng: number;
@@ -32,6 +39,15 @@ export default function MapView() {
     pitch: 0,
     bearing: 0
   });
+
+  const getCombinedFilter = () => {
+    const typeFilter = ['in', ['get', 'type'], ['literal', visibleTypes]];
+    
+    if (selectedRouteId) {
+      return ['all', typeFilter, ['==', ['get', 'id'], selectedRouteId]];
+    }
+    return typeFilter;
+  };
 
   // --- LOGIQUE DE TRI ET COULEURS ---
   const tracksWithColors = useMemo(() => {
@@ -116,6 +132,8 @@ export default function MapView() {
         tracks={tracksWithColors}
         selectedId={selectedRouteId}
         onSelect={setSelectedRouteId}
+        visibleTypes={visibleTypes}
+        onToggleType={toggleType}
       />
 
       <Map
@@ -143,7 +161,7 @@ export default function MapView() {
                 'line-color': 'rgba(0, 0, 0, 0)',
               }}
               layout={ROUTE_LAYER_LAYOUT}
-              filter={selectedRouteId ? ['==', ['get', 'id'], selectedRouteId] : ['all']}
+              filter={getCombinedFilter()}
             />
 
             {/* TRACÉS VISIBLES (L'offset est déjà dans les coordonnées) */}
@@ -152,20 +170,27 @@ export default function MapView() {
               type="line"
               layout={{
                 ...ROUTE_LAYER_LAYOUT,
+                // Note : join et cap sont déjà dans ROUTE_LAYER_LAYOUT normalement, 
+                // mais on les laisse ici par sécurité si tu préfères
                 'line-join': 'round',
                 'line-cap': 'round'
               }}
               paint={{
-                ...ROUTE_LAYER_BASE_PAINT,
+                // On a supprimé ...ROUTE_LAYER_BASE_PAINT ici
                 'line-width': selectedRouteId 
                   ? TRACK_CONFIG.WIDTH_SELECTED 
                   : TRACK_CONFIG.WIDTH_DEFAULT,
+                
                 'line-color': getColorExpression(),
+                
                 'line-opacity': selectedRouteId 
                   ? TRACK_CONFIG.OPACITY_SELECTED 
-                  : TRACK_CONFIG.OPACITY_DEFAULT
+                  : TRACK_CONFIG.OPACITY_DEFAULT,
+                  
+                // Optionnel : tu peux ajouter un lissage visuel ici si besoin
+                'line-blur': 0.5 
               }}
-              filter={LAYER_FILTERS.ID_MATCH(selectedRouteId)}
+              filter={getCombinedFilter()}
             />
           </Source>
         )}
