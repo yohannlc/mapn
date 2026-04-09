@@ -9,11 +9,11 @@ const INPUT_DIR = './gpx';
 const OUTPUT_FILE = './public/data/tracks.json';
 
 // Espacement entre deux traces co-localisées (mètres)
-const OFFSET_STEP = 5;
+const OFFSET_STEP = 7;
 
 // Distance max (mètres) en dessous de laquelle deux points sont considérés
 // sur le même segment → seuil de co-localisation
-const COLOC_THRESHOLD_M = 15;
+const COLOC_THRESHOLD_M = 10;
 
 if (!fs.existsSync(INPUT_DIR)) {
   console.error(`❌ Le dossier ${INPUT_DIR} n'existe pas.`);
